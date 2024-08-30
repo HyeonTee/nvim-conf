@@ -1,4 +1,1 @@
-# 💤 LazyVim
-
-A starter template for [LazyVim](https://github.com/LazyVim/LazyVim).
-Refer to the [documentation](https://lazyvim.github.io/installation) to get started.
+기본 [LazyVim](https://github.com/LazyVim/LazyVim) 설정에 개인 변경사항 저장, 관리를 위한 Repository
