@@ -33,6 +33,12 @@ return {
               luasnip = "[LuaSnip]",
             },
           }),
+          expandable_indicator = true,
+          fields = {
+            "abbr",
+            "kind",
+            "menu",
+          },
         },
         window = {
           completion = cmp.config.window.bordered(),
