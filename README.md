@@ -6,7 +6,8 @@
 - s + h,j,k,l : 분할 화면 이동
 - space + e : neotree toggle
 - shift + h,l : Buffer 이동
-- g + c : 주석 처리 (with visual mode)
-- g + d : go to definition
+- g + c : Toggle comment (with visual mode)
+- g + d : Goto definition
 - space + l : lazyvim
 - ctrl + / : terminal toggle
+- space + c + M: Add missing import
