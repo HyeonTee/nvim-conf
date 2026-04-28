@@ -42,6 +42,7 @@ lua/plugins/                  플러그인 정의
 - **gitsigns** — Git diff 사이드 표시 / hunk 조작
 - **nvim-treesitter** — 구문 하이라이트 + 언어별 인덴트
 - **mason + nvim-lspconfig** — LSP 서버 설치/설정 관리
+- **conform.nvim** — 저장 시 자동 포맷 (prettier, stylua, gofmt 등)
 
 ### LSP 서버 (Mason 자동 설치)
 
