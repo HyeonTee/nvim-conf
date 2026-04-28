@@ -10,5 +10,7 @@
   "nvim-treesitter": { "branch": "master", "commit": "cf12346a3414fa1b06af75c79faebe7f76df080a" },
   "nvim-web-devicons": { "branch": "master", "commit": "8069e89df2d7259704286a5906a11c5b27d5b440" },
   "plenary.nvim": { "branch": "master", "commit": "74b06c6c75e4eeb3108ec01852001636d85a932b" },
-  "solarized-osaka.nvim": { "branch": "main", "commit": "a261ee90fb3e5e82660567e4874d384e996afa4f" }
+  "solarized-osaka.nvim": { "branch": "main", "commit": "a261ee90fb3e5e82660567e4874d384e996afa4f" },
+  "telescope-fzf-native.nvim": { "branch": "main", "commit": "6fea601bd2b694c6f2ae08a6c6fab14930c60e2c" },
+  "telescope.nvim": { "branch": "master", "commit": "506338434fec5ad19cb1f8d45bf92d66c4917393" }
 }
