@@ -1,5 +1,15 @@
 개인 Neovim 설정. `~/.config/nvim` → 이 repo로 심볼릭 링크해서 사용.
 
+Leader 키는 `Space`. 컬러스킴은 `solarized-osaka` (transparent).
+
+## 사전 요구사항
+
+- Neovim 0.10 이상
+- `git`
+- `ripgrep` — Telescope live grep용
+- `node` — 일부 LSP 서버 (`ts_ls` 등)
+- Nerd Font — 아이콘 표시 (lualine, neo-tree)
+
 ## 설치
 
 ```bash
@@ -20,6 +30,29 @@ lua/config/autocmds.lua       자동 명령
 lua/config/lazy.lua           lazy.nvim 부트스트랩
 lua/plugins/                  플러그인 정의
 ```
+
+## 플러그인
+
+- **lazy.nvim** — 플러그인 매니저 (`lua/config/lazy.lua`에서 부트스트랩)
+- **solarized-osaka** — 컬러스킴
+- **neo-tree** — 파일 탐색기
+- **telescope** — 퍼지 검색
+- **blink.cmp** — 자동완성
+- **lualine** — 상태바
+- **gitsigns** — Git diff 사이드 표시 / hunk 조작
+- **nvim-treesitter** — 구문 하이라이트 + 언어별 인덴트
+- **mason + nvim-lspconfig** — LSP 서버 설치/설정 관리
+
+### LSP 서버 (Mason 자동 설치)
+
+`lua_ls`, `ts_ls`, `gopls`, `rust_analyzer`, `basedpyright`
+
+## 유지보수
+
+- `:Lazy` — 플러그인 상태 보기
+- `:Lazy sync` / `:Lazy update` — 플러그인 설치/업데이트
+- `:Mason` — LSP/포매터/린터 바이너리 관리
+- `:checkhealth` — 환경 점검 (의존성, 설정 문제 진단)
 
 ## Keymaps
 
