@@ -71,3 +71,12 @@ lua/plugins/                  플러그인 정의
 - `;;` : 직전 picker 재개
 - `;e` : 진단 목록
 - `;s` : 문서 심볼 (LSP)
+
+### Git (gitsigns)
+- `]c` / `[c` : 다음/이전 hunk
+- `<leader>hs` : Stage hunk (다시 누르면 unstage)
+- `<leader>hr` : Reset hunk
+- `<leader>hS` : 버퍼 전체 stage
+- `<leader>hp` : Hunk 미리보기
+- `<leader>hb` : 줄 blame
+- `<leader>hd` : Diff vs index
