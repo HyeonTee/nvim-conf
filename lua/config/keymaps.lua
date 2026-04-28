@@ -4,6 +4,9 @@ local opts = { noremap = true, silent = true }
 keymap.set("n", "+", "<C-a>")
 keymap.set("n", "-", "<C-x>")
 
+-- 검색 하이라이트 해제
+keymap.set("n", "<Esc>", ":nohlsearch<CR>", opts)
+
 -- 왼쪽 일괄 삭제
 keymap.set("n", "dw", "vb_d")
 
