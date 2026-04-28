@@ -26,8 +26,16 @@ return {
   {
     "neovim/nvim-lspconfig",
     event = { "BufReadPre", "BufNewFile" },
-    dependencies = { "williamboman/mason-lspconfig.nvim" },
+    dependencies = {
+      "williamboman/mason-lspconfig.nvim",
+      "saghen/blink.cmp",
+    },
     config = function()
+      -- blink.cmp가 지원하는 추가 기능을 모든 LSP 서버에 알림 (스니펫, 풍부한 completion 등)
+      vim.lsp.config("*", {
+        capabilities = require("blink.cmp").get_lsp_capabilities(),
+      })
+
       -- LSP가 버퍼에 붙을 때 공통 키맵 등록
       vim.api.nvim_create_autocmd("LspAttach", {
         callback = function(ev)

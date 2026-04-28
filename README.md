@@ -55,3 +55,9 @@ lua/plugins/                  플러그인 정의
 - `<leader>rn` : 이름 변경
 - `<leader>ca` : 코드 액션
 - `<leader>f` : 포맷
+
+### 자동완성 (blink.cmp)
+- `<C-Space>` : 완성 메뉴 열기
+- `<Tab>` / `<S-Tab>` : 다음/이전 항목
+- `<CR>` : 선택 항목 확정
+- `<C-e>` : 메뉴 닫기
