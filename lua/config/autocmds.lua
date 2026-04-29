@@ -17,3 +17,13 @@ vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHo
   pattern = "*",
   command = "checktime",
 })
+
+-- 포커스 잃거나 버퍼 떠날 때 자동 저장 (일반 파일 버퍼만)
+vim.api.nvim_create_autocmd({ "FocusLost", "BufLeave" }, {
+  pattern = "*",
+  callback = function()
+    if vim.bo.modifiable and vim.bo.modified and vim.bo.buftype == "" and vim.fn.expand("%") ~= "" then
+      vim.cmd("silent! write")
+    end
+  end,
+})
