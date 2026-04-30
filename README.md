@@ -86,6 +86,7 @@ lua/plugins/                  플러그인 정의
 ### 파일 탐색
 - `<leader>e` : Neo-tree 토글
 - 트리 안에서 `l` / `h` : 폴더 열기 / 닫기
+- `nvim .` (또는 디렉토리 인자) 로 시작하면 Neo-tree 가 자동으로 사이드바에 열림 (netrw 비활성화)
 
 ### LSP
 - `gd` : 정의로 이동
