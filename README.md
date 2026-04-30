@@ -45,6 +45,11 @@ lua/plugins/                  플러그인 정의
 - **conform.nvim** — 저장 시 자동 포맷 (prettier, stylua, gofmt 등)
 - **nvim-surround** — 따옴표/괄호 등 감싸기·바꾸기·삭제 (`ys`, `cs`, `ds`)
 - **nvim-autopairs** — 괄호/따옴표 자동 짝 입력 (treesitter 인지)
+- **indent-blankline.nvim** — 인덴트 단계마다 세로 가이드 선
+- **rainbow-delimiters.nvim** — 중첩 괄호를 깊이별로 다른 색으로 표시
+- **which-key.nvim** — 리더키 누르고 잠시 멈추면 사용 가능한 매핑 팝업
+- **flash.nvim** — 화면 어디든 두 글자로 점프 (`s`, `S`)
+- **nvim-treesitter-textobjects** — 함수/클래스/인자 단위 선택·이동·편집
 
 ### LSP 서버 (Mason 자동 설치)
 
@@ -116,3 +121,22 @@ lua/plugins/                  플러그인 정의
 - `<leader>hp` : Hunk 미리보기
 - `<leader>hb` : 줄 blame
 - `<leader>hd` : Diff vs index
+
+### Flash (점프)
+- `s` + 글자 1~2개 + 라벨 : 화면 어디든 점프
+- `S` : Treesitter 노드(함수/블록 등) 단위로 점프
+- 오퍼레이터와 조합: `ds<글자><라벨>`(삭제), `ys<글자><라벨>`(복사), `vs<글자><라벨>`(선택)
+
+### Treesitter 텍스트 객체
+| 키 | 동작 |
+| --- | --- |
+| `if` / `af` | 함수 안 / 함수 통째로 |
+| `ic` / `ac` | 클래스 안 / 클래스 통째로 |
+| `ia` / `aa` | 인자 안 / 인자 통째로 |
+| `]f` / `[f` | 다음/이전 함수로 점프 |
+| `]]` / `[[` | 다음/이전 클래스로 점프 |
+
+오퍼레이터와 조합 예: `vif`(함수 선택), `daf`(함수 삭제), `caf`(함수 변경), `yaf`(함수 복사).
+
+### which-key
+별도 매핑 없음. `Space`(리더) 또는 `g`, `]`, `[` 등을 누르고 잠시 멈추면 사용 가능한 후속 매핑이 팝업으로 자동 표시됩니다.
