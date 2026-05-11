@@ -4,7 +4,7 @@ Leader 키는 `Space`. 컬러스킴은 `solarized-osaka` (transparent).
 
 ## 사전 요구사항
 
-- Neovim 0.10 이상
+- Neovim 0.11 이상
 - `git`
 - `ripgrep` — Telescope live grep용
 - `node` — 일부 LSP 서버 (`ts_ls` 등)
