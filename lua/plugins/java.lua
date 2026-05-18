@@ -17,11 +17,17 @@ return {
   -- Spring Boot LSP (vscode-spring-boot / STS4) 통합.
   -- bean 점프, @RequestMapping 심볼 검색, application.yml/properties 자동완성.
   -- jdtls 의 init_options.bundles 에 Spring 확장 jar 를 자동 주입.
+  --
+  -- java_cmd: Spring Boot LS 는 Java 21 로 빌드돼 있어 PATH 의 구버전 java
+  -- (예: brew openjdk@17) 로는 UnsupportedClassVersionError 가 난다.
+  -- /usr/libexec/java_home -v 21 결과를 명시적으로 지정.
   {
     "JavaHello/spring-boot.nvim",
     ft = { "java", "yaml", "jproperties" },
     dependencies = { "mfussenegger/nvim-jdtls" },
-    opts = {},
+    opts = {
+      java_cmd = "/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java",
+    },
   },
 
   -- DAP 코어 + UI. java-debug-adapter 와 java-test bundle 은 jdtls 의
