@@ -8,6 +8,8 @@ return {
   },
 
   -- Mason 으로 설치한 서버를 자동으로 vim.lsp.enable() 까지 처리
+  -- (jdtls 는 여기서 다루지 않음 — mason-tool-installer 가 설치하고
+  --  nvim-jdtls 가 ftplugin/java.lua 에서 직접 attach)
   {
     "williamboman/mason-lspconfig.nvim",
     dependencies = { "williamboman/mason.nvim" },

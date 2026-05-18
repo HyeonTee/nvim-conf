@@ -8,6 +8,7 @@ Leader 키는 `Space`. 컬러스킴은 `solarized-osaka` (transparent).
 - `git`
 - `ripgrep` — Telescope live grep용
 - `node` — 일부 LSP 서버 (`ts_ls` 등)
+- `java` (JDK 21 이상) — jdtls 런타임 요구사항 (`java -version` 으로 확인). 프로젝트 자체는 다른 Java 버전이어도 됨 (필요 시 `ftplugin/java.lua` 의 `settings.java.configuration.runtimes` 에 등록)
 - Nerd Font — 아이콘 표시 (lualine, neo-tree)
 
 ## 설치
@@ -51,10 +52,24 @@ lua/plugins/                  플러그인 정의
 - **flash.nvim** — 화면 어디든 두 글자로 점프 (`s`, `S`)
 - **nvim-treesitter-textobjects** — 함수/클래스/인자 단위 선택·이동·편집
 - **render-markdown.nvim** — 마크다운 버퍼 안에서 헤딩/코드블럭/체크박스/테이블 렌더링
+- **nvim-jdtls** — Eclipse JDT LS(Java) 어댑터. `ftplugin/java.lua` 에서 jdtls 를 직접 attach
+- **spring-boot.nvim** — Spring Boot LSP(STS4) 통합 (bean 점프, `application.yml/properties` 자동완성)
+- **nvim-dap** + **nvim-dap-ui** + **nvim-dap-virtual-text** — 디버거 (Spring Boot / JUnit)
+- **mason-tool-installer** — LSP 가 아닌 Mason 패키지(DAP 어댑터, 포매터 등) 자동 설치
 
 ### LSP 서버 (Mason 자동 설치)
 
-`lua_ls`, `ts_ls`, `gopls`, `rust_analyzer`, `basedpyright`
+`lua_ls`, `ts_ls`, `gopls`, `rust_analyzer`, `basedpyright`, `jdtls`
+
+> `jdtls` 는 자동 설치만 되고 attach 는 `nvim-jdtls` 가 `ftplugin/java.lua` 에서 직접 수행 (mason-lspconfig 의 `automatic_enable.exclude` 로 제외).
+
+### 비-LSP 도구 (mason-tool-installer 자동 설치)
+
+`jdtls`, `java-debug-adapter`, `java-test`, `vscode-spring-boot-tools`
+
+> Spring Boot LS 는 `spring-boot.nvim` 이 mason 의 `vscode-spring-boot-tools` 패키지를 기대하므로 이 이름이 정확해야 함 (Mason 코어 레지스트리에 존재).
+>
+> Java 포맷은 별도 외부 포매터 대신 **jdtls 자체 포맷**(Eclipse 표준, 4칸 스페이스) 을 사용 — 저장 시 conform 의 `lsp_format = "fallback"` 흐름으로 처리됨.
 
 ## 유지보수
 
@@ -142,6 +157,25 @@ lua/plugins/                  플러그인 정의
 
 ### 마크다운 (render-markdown)
 - `<leader>um` : 렌더링 토글 (마크다운 파일에서만)
+
+### Java (nvim-jdtls)
+- `<leader>jo` : import 정리
+- `<leader>jv` : 변수 추출 (visual 모드 가능)
+- `<leader>jc` : 상수 추출 (visual 모드 가능)
+- `<leader>jm` : 메서드 추출 (visual 모드)
+- `<leader>jt` : 현재 클래스 테스트 실행
+- `<leader>jn` : 커서 위치 메서드 테스트 실행
+
+> 첫 실행 시 jdtls 가 프로젝트를 인덱싱하느라 1~수분 걸릴 수 있음. 워크스페이스는 프로젝트별로 `~/.cache/nvim/jdtls/workspace/<프로젝트명>` 에 분리 저장.
+
+### 디버그 (nvim-dap)
+- `<leader>db` : 브레이크포인트 토글
+- `<leader>dc` : 계속 / 디버그 시작
+- `<leader>di` : step into
+- `<leader>do` : step over
+- `<leader>dO` : step out
+- `<leader>dt` : 디버그 종료
+- `<leader>du` : DAP UI 토글
 
 ### which-key
 별도 매핑 없음. `Space`(리더) 또는 `g`, `]`, `[` 등을 누르고 잠시 멈추면 사용 가능한 후속 매핑이 팝업으로 자동 표시됩니다.

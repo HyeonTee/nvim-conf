@@ -32,6 +32,8 @@ return {
         "gitignore",
         "sql",
         "regex",
+        "java",
+        "properties",
       },
       highlight = { enable = true },
       indent = { enable = true },
