@@ -44,7 +44,7 @@ lua/plugins/                  플러그인 정의
 - **nvim-treesitter** — 구문 하이라이트 + 언어별 인덴트
 - **mason + nvim-lspconfig** — LSP 서버 설치/설정 관리
 - **conform.nvim** — 저장 시 자동 포맷 (prettier, stylua, gofmt 등)
-- **nvim-surround** — 따옴표/괄호 등 감싸기·바꾸기·삭제 (`ys`, `cs`, `ds`)
+- **nvim-surround** — 따옴표/괄호 등 감싸기·바꾸기·삭제 (`ys`, `cs`, `ds`). 비주얼 모드에서 `(`, `[`, `{` 로 즉시 감싸기 가능
 - **nvim-autopairs** — 괄호/따옴표 자동 짝 입력 (treesitter 인지)
 - **indent-blankline.nvim** — 인덴트 단계마다 세로 가이드 선
 - **rainbow-delimiters.nvim** — 중첩 괄호를 깊이별로 다른 색으로 표시
@@ -138,6 +138,12 @@ lua/plugins/                  플러그인 정의
 - `<leader>hp` : Hunk 미리보기
 - `<leader>hb` : 줄 blame
 - `<leader>hd` : Diff vs index
+
+### 감싸기 (nvim-surround)
+- Normal: `ys{motion}{char}` — 감싸기 (예: `ysiw)` → 단어를 `()` 로)
+- Normal: `cs{old}{new}` — 바꾸기 (예: `cs"'` → `"` → `'`)
+- Normal: `ds{char}` — 삭제 (예: `ds(` → `()` 제거)
+- Visual: 선택 후 `(` / `[` / `{` — 해당 괄호로 즉시 감싸기
 
 ### Flash (점프)
 - `s` + 글자 1~2개 + 라벨 : 화면 어디든 점프
