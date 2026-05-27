@@ -147,7 +147,7 @@ local config = {
         importOrder = { "java", "javax", "com", "org" },
       },
       configuration = {
-        updateBuildConfiguration = "interactive",
+        updateBuildConfiguration = "automatic",
       },
       sources = {
         organizeImports = { starThreshold = 9999, staticStarThreshold = 9999 },
