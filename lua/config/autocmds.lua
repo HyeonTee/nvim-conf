@@ -11,6 +11,18 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+-- 퀵픽스 창에서 Enter 로 항목 점프 후 퀵픽스 창 자동 닫기
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "qf",
+  callback = function()
+    vim.keymap.set("n", "<CR>", "<CR><cmd>cclose<CR>", {
+      buffer = true,
+      silent = true,
+      nowait = true,
+    })
+  end,
+})
+
 -- 외부에서 파일 변경 시 자동 reload (Claude Code 등 외부 도구가 편집한 내용 즉시 반영)
 vim.opt.autoread = true
 vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {

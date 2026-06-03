@@ -13,8 +13,9 @@ keymap.set("n", "dw", "vb_d")
 -- 전체 선택
 keymap.set("n", "<C-a>", "gg<S-v>G")
 
--- 점프리스트
-keymap.set("n", "<C-m>", "<C-i>", opts)
+-- 점프리스트 앞으로 (<Tab>이 탭이동에 쓰여 <C-i>가 막히므로 별도 키 사용)
+-- (<C-m> 은 Enter 와 같은 키코드라 사용하면 안 됨)
+keymap.set("n", "<leader>i", "<C-i>", opts)
 
 -- 새 탭
 keymap.set("n", "te", ":tabedit<Return>", opts)
