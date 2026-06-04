@@ -1,6 +1,12 @@
 -- nvim-treesitter `main` branch
 -- master 와 달리 setup({highlight=...}) 가 없다.
 -- 파서는 install() 로 깔고, highlight/indent 는 FileType 에서 직접 켠다.
+--
+-- 요구사항 (둘 중 하나라도 없으면 하이라이트가 안 켜진다):
+--   1. Neovim 0.12+ (nightly) — main 이 vim.list 등 0.12 API 사용. 0.11.x 는 install() 가 크래시.
+--   2. `tree-sitter` CLI — main 은 파서를 소스에서 컴파일하므로 PATH 에 필요.
+-- macOS: brew install neovim --HEAD && brew install tree-sitter-cli
+-- 파서/쿼리는 ~/.local/share/nvim/site/ (기본 rtp) 에 설치된다.
 
 local parsers = {
   "lua",

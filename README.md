@@ -4,7 +4,8 @@ Leader 키는 `Space`. 컬러스킴은 `solarized-osaka` (transparent).
 
 ## 사전 요구사항
 
-- Neovim 0.11 이상
+- Neovim 0.12 이상 (nightly) — nvim-treesitter `main` 브랜치가 0.12+ API(`vim.list` 등)를 요구. 0.11.x 에서는 파서 설치가 크래시하고 treesitter 하이라이트가 안 켜진다. macOS: `brew install neovim --HEAD`
+- `tree-sitter` CLI — nvim-treesitter `main` 은 파서를 소스에서 컴파일하므로 필요. macOS: `brew install tree-sitter-cli` (라이브러리 formula `tree-sitter` 와는 별개)
 - `git`
 - `ripgrep` — Telescope live grep용
 - `node` — 일부 LSP 서버 (`ts_ls` 등)
