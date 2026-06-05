@@ -15,7 +15,7 @@ Leader 키는 `Space`. 컬러스킴은 `catppuccin` (mocha, transparent).
 | **git** | 필수 | 플러그인/파서 clone |
 | **ripgrep** | Telescope live grep | |
 | **node** | 일부 LSP (`ts_ls` 등) | |
-| **JDK 21+** | jdtls 런타임 | `java -version` 으로 확인. 프로젝트 자체는 다른 Java 버전이어도 됨 (필요 시 `ftplugin/java.lua` 의 `settings.java.configuration.runtimes` 에 등록) |
+| **JDK 21+** | jdtls 런타임 | `java -version` 으로 확인. 프로젝트 자체는 다른 Java 버전이어도 됨 (필요 시 `ftplugin/java.lua` 의 `settings.java.configuration.runtimes` 에 등록). Homebrew JDK 사용 시 jdtls 가 안 뜨면 [TROUBLESHOOTING.md](TROUBLESHOOTING.md) 참고 |
 | **Nerd Font** | 아이콘 (lualine, neo-tree) | 설치 후 터미널 폰트로 지정 |
 
 macOS (Homebrew) 한 방에 설치:
@@ -100,6 +100,7 @@ lua/plugins/                  플러그인 정의
 - `:Lazy sync` / `:Lazy update` — 플러그인 설치/업데이트
 - `:Mason` — LSP/포매터/린터 바이너리 관리
 - `:checkhealth` — 환경 점검 (의존성, 설정 문제 진단)
+- 문제 해결: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 ## Keymaps
 
