@@ -1,18 +1,32 @@
 개인 Neovim 설정. `~/.config/nvim` → 이 repo로 심볼릭 링크해서 사용.
 
-Leader 키는 `Space`. 컬러스킴은 `solarized-osaka` (transparent).
-
-## 사전 요구사항
-
-- Neovim 0.12 이상 (nightly) — nvim-treesitter `main` 브랜치가 0.12+ API(`vim.list` 등)를 요구. 0.11.x 에서는 파서 설치가 크래시하고 treesitter 하이라이트가 안 켜진다. macOS: `brew install neovim --HEAD`
-- `tree-sitter` CLI — nvim-treesitter `main` 은 파서를 소스에서 컴파일하므로 필요. macOS: `brew install tree-sitter-cli` (라이브러리 formula `tree-sitter` 와는 별개)
-- `git`
-- `ripgrep` — Telescope live grep용
-- `node` — 일부 LSP 서버 (`ts_ls` 등)
-- `java` (JDK 21 이상) — jdtls 런타임 요구사항 (`java -version` 으로 확인). 프로젝트 자체는 다른 Java 버전이어도 됨 (필요 시 `ftplugin/java.lua` 의 `settings.java.configuration.runtimes` 에 등록)
-- Nerd Font — 아이콘 표시 (lualine, neo-tree)
+Leader 키는 `Space`. 컬러스킴은 `catppuccin` (mocha, transparent).
 
 ## 설치
+
+### 1. 시스템 의존성 (직접 설치)
+
+`git clone` 만으로는 부족하다. 아래 패키지는 OS에 미리 있어야 한다 (clone에 포함되지 않음).
+
+| 의존성 | 용도 | 비고 |
+| --- | --- | --- |
+| **Neovim 0.12+ (nightly)** | 필수 | nvim-treesitter `main` 브랜치가 0.12+ API(`vim.list` 등) 요구. 0.11.x 에서는 파서 설치 크래시 + 하이라이트 미작동 |
+| **tree-sitter CLI** | 필수 | `main` 브랜치가 파서를 소스 컴파일. 라이브러리 formula `tree-sitter` 와는 별개 |
+| **git** | 필수 | 플러그인/파서 clone |
+| **ripgrep** | Telescope live grep | |
+| **node** | 일부 LSP (`ts_ls` 등) | |
+| **JDK 21+** | jdtls 런타임 | `java -version` 으로 확인. 프로젝트 자체는 다른 Java 버전이어도 됨 (필요 시 `ftplugin/java.lua` 의 `settings.java.configuration.runtimes` 에 등록) |
+| **Nerd Font** | 아이콘 (lualine, neo-tree) | 설치 후 터미널 폰트로 지정 |
+
+macOS (Homebrew) 한 방에 설치:
+
+```bash
+brew install neovim --HEAD tree-sitter-cli ripgrep node
+brew install --cask font-jetbrains-mono-nerd-font   # Nerd Font (취향껏 다른 폰트도 OK)
+# JDK 21+ 는 별도로 (예: brew install openjdk@21)
+```
+
+### 2. 설정 가져오기
 
 ```bash
 git clone <repo> ~/project/nvim-conf
@@ -20,7 +34,15 @@ ln -s ~/project/nvim-conf ~/.config/nvim
 nvim
 ```
 
-첫 실행 시 `lazy.nvim`이 자동으로 부트스트랩되며 플러그인을 설치한다.
+### 3. 자동으로 되는 것 (손 안 대도 됨)
+
+첫 `nvim` 실행 시:
+
+- **lazy.nvim** 이 자동 부트스트랩되며 플러그인 전부 설치
+- **Mason** 이 LSP 서버 자동 설치 (`lua_ls`, `ts_ls`, `gopls`, `rust_analyzer`, `basedpyright`, `jdtls`)
+- **mason-tool-installer** 가 DAP 어댑터·포매터 등 비-LSP 패키지 자동 설치
+
+→ Mason 패키지를 수동으로 깔 필요는 없다. 설치 완료 후 `:checkhealth` 로 환경을 점검하면 끝.
 
 ## 구조
 
@@ -36,7 +58,7 @@ lua/plugins/                  플러그인 정의
 ## 플러그인
 
 - **lazy.nvim** — 플러그인 매니저 (`lua/config/lazy.lua`에서 부트스트랩)
-- **solarized-osaka** — 컬러스킴
+- **catppuccin** — 컬러스킴 (mocha, transparent)
 - **neo-tree** — 파일 탐색기
 - **telescope** — 퍼지 검색
 - **blink.cmp** — 자동완성
