@@ -19,15 +19,54 @@ return {
   -- jdtls 의 init_options.bundles 에 Spring 확장 jar 를 자동 주입.
   --
   -- java_cmd: Spring Boot LS 는 Java 21 로 빌드돼 있어 PATH 의 구버전 java
-  -- (예: brew openjdk@17) 로는 UnsupportedClassVersionError 가 난다.
-  -- /usr/libexec/java_home -v 21 결과를 명시적으로 지정.
+  -- (예: openjdk@17) 로는 UnsupportedClassVersionError 가 난다.
+  -- OS 무관하게 Java 21 바이너리를 탐지해 명시적으로 지정. 우선순위:
+  --   1. SPRING_BOOT_JAVA_HOME / JDTLS_JAVA_HOME (사용자 지정)
+  --   2. macOS: /usr/libexec/java_home -v 21
+  --   3. Linux: /usr/lib/jvm 아래 java-21 / temurin-21 등
+  --   4. JAVA_HOME (21+ 로 설정했다고 가정)
+  --   5. PATH 의 "java" (최후 폴백)
   {
     "JavaHello/spring-boot.nvim",
     ft = { "java", "yaml", "jproperties" },
     dependencies = { "mfussenegger/nvim-jdtls" },
-    opts = {
-      java_cmd = "/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java",
-    },
+    opts = function()
+      local function find_java21()
+        for _, env in ipairs({ vim.env.SPRING_BOOT_JAVA_HOME, vim.env.JDTLS_JAVA_HOME }) do
+          if env and env ~= "" then
+            return env .. "/bin/java"
+          end
+        end
+        if vim.fn.has("mac") == 1 then
+          local handle = io.popen("/usr/libexec/java_home -v 21 2>/dev/null")
+          if handle then
+            local home = handle:read("*l")
+            handle:close()
+            if home and home ~= "" then
+              return home .. "/bin/java"
+            end
+          end
+        elseif vim.fn.has("unix") == 1 then
+          -- 대부분의 배포판은 JDK 를 /usr/lib/jvm 아래에 둔다 (temurin/openjdk 등)
+          for _, pattern in ipairs({ "*temurin-21*", "*java-21-*", "*jdk-21*", "*-21-openjdk*" }) do
+            for _, dir in ipairs(vim.split(vim.fn.glob("/usr/lib/jvm/" .. pattern), "\n", { trimempty = true })) do
+              local bin = dir .. "/bin/java"
+              if vim.fn.executable(bin) == 1 then
+                return bin
+              end
+            end
+          end
+        end
+        if vim.env.JAVA_HOME and vim.env.JAVA_HOME ~= "" then
+          return vim.env.JAVA_HOME .. "/bin/java"
+        end
+        return "java"
+      end
+
+      return {
+        java_cmd = find_java21(),
+      }
+    end,
   },
 
   -- DAP 코어 + UI. java-debug-adapter 와 java-test bundle 은 jdtls 의

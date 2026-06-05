@@ -16,15 +16,34 @@ Leader 키는 `Space`. 컬러스킴은 `catppuccin` (mocha, transparent).
 | **ripgrep** | Telescope live grep | |
 | **node** | 일부 LSP (`ts_ls` 등) | |
 | **JDK 21+** | jdtls 런타임 | `java -version` 으로 확인. 프로젝트 자체는 다른 Java 버전이어도 됨 (필요 시 `ftplugin/java.lua` 의 `settings.java.configuration.runtimes` 에 등록). Homebrew JDK 사용 시 jdtls 가 안 뜨면 [TROUBLESHOOTING.md](TROUBLESHOOTING.md) 참고 |
+| **클립보드 도구** | `clipboard = unnamedplus` (시스템 클립보드 연동) | macOS 는 `pbcopy`/`pbpaste` 내장. **Linux 는 `xclip`/`xsel`(X11) 또는 `wl-clipboard`(Wayland) 설치 필요** |
+| **C 컴파일러 + make** | telescope-fzf-native 빌드 | macOS: Xcode CLT. Linux: `build-essential` |
 | **Nerd Font** | 아이콘 (lualine, neo-tree) | 설치 후 터미널 폰트로 지정 |
 
 macOS (Homebrew) 한 방에 설치:
 
 ```bash
+xcode-select --install                              # C 컴파일러 + make (이미 있으면 skip)
 brew install neovim --HEAD tree-sitter-cli ripgrep node
 brew install --cask font-jetbrains-mono-nerd-font   # Nerd Font (취향껏 다른 폰트도 OK)
 # JDK 21+ 는 별도로 (예: brew install openjdk@21)
 ```
+
+Ubuntu / Debian 한 방에 설치:
+
+```bash
+# Neovim 0.12+ (nightly) — apt 의 안정판은 보통 너무 낮음. PPA 또는 nightly 릴리스 사용
+sudo add-apt-repository ppa:neovim-ppa/unstable && sudo apt update && sudo apt install neovim
+# 빌드 도구 / ripgrep / node / 클립보드(X11 기준 xclip; Wayland 면 wl-clipboard)
+sudo apt install build-essential git ripgrep nodejs xclip
+# tree-sitter CLI — apt 패키지가 없거나 낮으면 cargo/npm 으로:
+cargo install tree-sitter-cli        # 또는: npm install -g tree-sitter-cli
+# JDK 21
+sudo apt install openjdk-21-jdk
+# Nerd Font 는 직접 내려받아 ~/.local/share/fonts 에 두고 fc-cache -f
+```
+
+> **Java 21 경로**: Spring Boot LS 는 Java 21 로 빌드돼 있어 OS 무관하게 Java 21 바이너리를 자동 탐지한다 (macOS `java_home`, Linux `/usr/lib/jvm` 스캔). 비표준 위치에 설치했다면 `SPRING_BOOT_JAVA_HOME`(또는 `JDTLS_JAVA_HOME`) 환경변수로 JDK 홈을 지정하면 된다.
 
 ### 2. 설정 가져오기
 
