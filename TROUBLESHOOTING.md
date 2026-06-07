@@ -56,3 +56,54 @@ export JDTLS_JAVA_HOME=/opt/homebrew/opt/openjdk@21
 ```
 
 적용 후 nvim 에서 `:e` 로 java 파일을 다시 열면 jdtls 가 새 java 로 재시작된다.
+
+## 회사에선 되는데 git pull 받은 머신에서 spring-boot 만 깨짐
+
+**증상**
+
+- jdtls(LSP)는 정상 attach 되고 일반 자바 기능은 됨
+- 그런데 **Spring 기능만** 안 됨 (bean 점프, `@RequestMapping` 심볼 검색,
+  `application.yml`/`.properties` 자동완성)
+- 머신마다 됐다 안 됐다 함 — 특히 새로 git pull 받은 머신에서 재현
+
+**원인 — mason 버전 드리프트**
+
+`lazy-lock.json` 은 **플러그인 git 커밋만** 고정한다. **Mason 패키지 버전은 고정 대상이
+아니다.** spring-boot.nvim 은 mason 의 `vscode-spring-boot-tools` 안에 있는 jar 들
+(`jdt-ls-extension.jar`, `sts-gradle-tooling.jar`, `io.projectreactor.reactor-core.jar`
+등)을 **하드코딩된 이름**으로 jdtls bundle 에 주입한다.
+
+핀이 없으면 새 머신의 첫 설치에서 mason 이 **최신** sts4 를 받는데, 그 버전의 jar
+레이아웃/이름이 현재 고정된 spring-boot.nvim 커밋이 기대하는 것과 어긋나면 bundle 주입이
+실패해 Spring 기능만 죽는다. (jdtls 자체는 멀쩡하므로 일반 자바는 됨 → 진단이 헷갈림)
+
+**해결 — 버전 핀 (적용 완료)**
+
+`lua/plugins/java.lua` 의 `mason-tool-installer` 에 sts4 버전을 고정해 둠:
+
+```lua
+{ "vscode-spring-boot-tools", version = "1.63.0" },
+```
+
+이러면 어느 머신이든 spring-boot.nvim 커밋과 짝이 맞는 동일 sts4 를 받는다.
+
+**이미 다른 버전이 깔려 깨진 머신에서**
+
+`auto_update = false` 라 mason-tool-installer 가 자동 다운그레이드하지 않는다. 한 번만
+수동으로 맞춰준다:
+
+```vim
+:MasonInstall vscode-spring-boot-tools@1.63.0
+```
+
+설치 후 nvim 재시작(또는 java 파일에서 `:e`). 확인:
+
+```bash
+cat ~/.local/share/nvim/mason/packages/vscode-spring-boot-tools/mason-receipt.json \
+  | grep -o 'vscode-spring-boot@[0-9.]*'   # vscode-spring-boot@1.63.0 이어야 함
+```
+
+**업그레이드할 때**
+
+sts4 를 올리려면 spring-boot.nvim 플러그인 커밋과 이 버전 핀을 **함께** 올려야 한다.
+한쪽만 올리면 다시 드리프트로 깨진다.

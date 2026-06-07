@@ -108,7 +108,11 @@ return {
         "jdtls",
         "java-debug-adapter",
         "java-test",
-        "vscode-spring-boot-tools",
+        -- 버전 핀: spring-boot.nvim 커밋(lazy-lock 의 98c6ff1)이 기대하는 jar 이름/레이아웃과
+        -- 맞는 sts4 버전으로 고정. 핀이 없으면 새 머신에서 mason 이 최신 sts4 를 받아
+        -- spring-boot.nvim 하드코딩 jar 목록과 어긋나 Spring 기능이 깨진다(머신 간 드리프트).
+        -- 업그레이드 시: spring-boot.nvim 커밋과 이 버전을 함께 올릴 것.
+        { "vscode-spring-boot-tools", version = "1.63.0" },
       },
       run_on_start = true,
       auto_update = false,
