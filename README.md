@@ -91,6 +91,7 @@ lua/plugins/                  플러그인 정의
 - **indent-blankline.nvim** — 인덴트 단계마다 세로 가이드 선
 - **rainbow-delimiters.nvim** — 중첩 괄호를 깊이별로 다른 색으로 표시
 - **which-key.nvim** — 리더키 누르고 잠시 멈추면 사용 가능한 매핑 팝업
+- **toggleterm.nvim** — 통합 터미널. `<C-\>` 로 플로팅 터미널 토글, 가로/세로 분할, lazygit 연동
 - **flash.nvim** — 화면 어디든 두 글자로 점프 (`s`, `S`)
 - **nvim-treesitter-textobjects** — 함수/클래스/인자 단위 선택·이동·편집
 - **render-markdown.nvim** — 마크다운 버퍼 안에서 헤딩/코드블럭/체크박스/테이블 렌더링
@@ -225,6 +226,18 @@ lua/plugins/                  플러그인 정의
 - `<leader>dO` : step out
 - `<leader>dt` : 디버그 종료
 - `<leader>du` : DAP UI 토글
+
+### 터미널 (toggleterm)
+- `<C-\>` : 플로팅 터미널 토글 (어디서든)
+- `<leader>th` : 가로 분할 터미널
+- `<leader>tv` : 세로 분할 터미널
+- `<leader>tg` : lazygit (별도 설치 필요: `brew install lazygit`)
+- `<C-\>` 앞에 숫자를 붙이면 번호별 터미널 (`2<C-\>` → 2번 터미널)
+
+터미널 모드(입력 중) 단축키 — `:term` 등 모든 터미널에 공통 적용:
+- `<Esc>` : 노멀 모드로 빠져나오기 (스크롤·복사 가능)
+- `<C-h>` / `<C-j>` / `<C-k>` / `<C-l>` : 다른 창으로 이동
+- 터미널 창은 줄번호가 꺼지고 진입 시 자동으로 입력 모드가 됨
 
 ### which-key
 별도 매핑 없음. `Space`(리더) 또는 `g`, `]`, `[` 등을 누르고 잠시 멈추면 사용 가능한 후속 매핑이 팝업으로 자동 표시됩니다.
