@@ -1,15 +1,23 @@
 return {
   -- LSP/포매터/린터 바이너리 설치 관리자
+  -- nvim-java 가 jdtls/lombok/java-test/java-debug/spring-boot 를 자체 mason
+  -- 레지스트리(github:nvim-java/mason-registry)로 설치하므로 그 레지스트리를
+  -- 기본 레지스트리보다 먼저 등록한다. 순서: nvim-java 우선 → mason-org 폴백.
   {
     "williamboman/mason.nvim",
     cmd = "Mason",
     build = ":MasonUpdate",
-    opts = {},
+    opts = {
+      registries = {
+        "github:nvim-java/mason-registry",
+        "github:mason-org/mason-registry",
+      },
+    },
   },
 
-  -- Mason 으로 설치한 서버를 자동으로 vim.lsp.enable() 까지 처리
-  -- (jdtls 는 여기서 다루지 않음 — mason-tool-installer 가 설치하고
-  --  nvim-jdtls 가 ftplugin/java.lua 에서 직접 attach)
+  -- Mason 으로 설치한 서버를 자동으로 vim.lsp.enable() 까지 처리.
+  -- jdtls 는 제외한다 — nvim-java 가 require("java").setup() + vim.lsp.enable("jdtls")
+  -- 로 직접 등록/활성화하므로, 여기서 자동 enable 하면 이중 setup 충돌이 난다.
   {
     "williamboman/mason-lspconfig.nvim",
     dependencies = { "williamboman/mason.nvim" },
@@ -20,6 +28,10 @@ return {
         "gopls",
         "rust_analyzer",
         "basedpyright",
+      },
+      -- jdtls 는 nvim-java 가 소유. mason-lspconfig 의 자동 enable 에서 빼둔다.
+      automatic_enable = {
+        exclude = { "jdtls" },
       },
     },
   },
