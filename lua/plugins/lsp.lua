@@ -64,6 +64,17 @@ return {
           vim.keymap.set("n", "<leader>f", function()
             require("conform").format({ async = true, lsp_format = "fallback" })
           end, opts)
+
+          -- inlay hints: 서버가 지원하면 기본 ON, <leader>uh 로 버퍼별 토글.
+          -- (jdtls 파라미터 이름 힌트는 java.lua 의 inlayHints 설정에서 켠다)
+          local client = vim.lsp.get_client_by_id(ev.data.client_id)
+          if client and client:supports_method("textDocument/inlayHint") then
+            vim.lsp.inlay_hint.enable(true, { bufnr = ev.buf })
+            vim.keymap.set("n", "<leader>uh", function()
+              local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = ev.buf })
+              vim.lsp.inlay_hint.enable(not enabled, { bufnr = ev.buf })
+            end, vim.tbl_extend("force", opts, { desc = "UI: inlay hints 토글" }))
+          end
         end,
       })
 
