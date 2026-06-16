@@ -67,13 +67,43 @@ return {
 
           -- inlay hints: 서버가 지원하면 기본 ON, <leader>uh 로 버퍼별 토글.
           -- (jdtls 파라미터 이름 힌트는 java.lua 의 inlayHints 설정에서 켠다)
+          --
+          -- ⚠ Neovim 0.13-dev(nightly) inlay hint 구현에 편집 중 레이스가 있다:
+          --   힌트 col 은 "응답 도착 시점의 줄"로 계산되는데 그리기는 "redraw 시점의 줄"에
+          --   대해 일어나, 타이핑으로 줄이 짧아지면 col 이 줄 길이를 넘어가
+          --   "Invalid 'col': out of range" 로 데코레이션 프로바이더가 크래시한다.
+          --   회피: insert 모드 동안은 렌더를 끄고(버퍼가 흔들리는 구간) 빠져나오면
+          --   안정된 버퍼에 다시 켠다. 사용자의 on/off 의도는 b:inlay_hints_on 으로 보존.
+          --   (코어가 고쳐지면 이 가드는 제거 가능)
           local client = vim.lsp.get_client_by_id(ev.data.client_id)
           if client and client:supports_method("textDocument/inlayHint") then
-            vim.lsp.inlay_hint.enable(true, { bufnr = ev.buf })
+            local buf = ev.buf
+            vim.b[buf].inlay_hints_on = true
+            vim.lsp.inlay_hint.enable(true, { bufnr = buf })
+
             vim.keymap.set("n", "<leader>uh", function()
-              local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = ev.buf })
-              vim.lsp.inlay_hint.enable(not enabled, { bufnr = ev.buf })
+              local on = not vim.b[buf].inlay_hints_on
+              vim.b[buf].inlay_hints_on = on
+              vim.lsp.inlay_hint.enable(on, { bufnr = buf })
             end, vim.tbl_extend("force", opts, { desc = "UI: inlay hints 토글" }))
+
+            local grp = vim.api.nvim_create_augroup("InlayHintInsertGuard_" .. buf, { clear = true })
+            vim.api.nvim_create_autocmd("InsertEnter", {
+              group = grp,
+              buffer = buf,
+              callback = function()
+                vim.lsp.inlay_hint.enable(false, { bufnr = buf })
+              end,
+            })
+            vim.api.nvim_create_autocmd("InsertLeave", {
+              group = grp,
+              buffer = buf,
+              callback = function()
+                if vim.b[buf].inlay_hints_on then
+                  vim.lsp.inlay_hint.enable(true, { bufnr = buf })
+                end
+              end,
+            })
           end
         end,
       })
