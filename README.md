@@ -163,9 +163,6 @@ lua/plugins/                  플러그인 정의
 - `<leader>rn` : 이름 변경
 - `<leader>ca` : 코드 액션
 - `<leader>f` : 포맷
-- `<leader>uh` : inlay hints 토글 (파라미터 이름·추론 타입 인라인 표시. 서버 지원 시 기본 ON, 버퍼별 토글)
-
-> inlay hints 는 지원하는 모든 LSP(Java·TS·Go·Rust·Python 등)에 적용된다. Java(jdtls)는 메서드 인자에 파라미터 이름을 함께 표시한다.
 
 ### 자동완성 (blink.cmp)
 - `<C-Space>` : 완성 메뉴 열기

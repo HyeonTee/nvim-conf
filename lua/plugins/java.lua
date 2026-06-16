@@ -121,9 +121,6 @@ return {
             implementationsCodeLens = { enabled = true },
             referencesCodeLens = { enabled = true },
             signatureHelp = { enabled = true },
-            -- inlay hints: 메서드 인자에 파라미터 이름을 인라인 표시.
-            -- 표시 자체는 vim.lsp.inlay_hint(LspAttach, lsp.lua)에서 켠다.
-            inlayHints = { parameterNames = { enabled = "all" } },
             completion = {
               favoriteStaticMembers = {
                 "org.junit.Assert.*",

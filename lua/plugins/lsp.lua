@@ -45,39 +45,6 @@ return {
       "saghen/blink.cmp",
     },
     config = function()
-      -- ── inlay hint 크래시 안전망 (Neovim 0.13-dev nightly 버그 회피) ──
-      -- 코어 데코레이션 프로바이더가 redraw 시점에 줄 길이를 넘는 col 로
-      -- nvim_buf_set_extmark 를 호출해 "Invalid 'col': out of range" 로 죽는다.
-      -- (insert 가드로도 normal 모드 LSP 편집(format/organizeImports/rename 등)
-      --  직후의 비동기 렌더까지는 못 막아 재발 → 렌더 지점에서 직접 방어한다.)
-      -- inlay hint 네임스페이스의 extmark 만 가로채 col 을 클램프하고, 그래도
-      -- 실패하면 그 힌트 하나만 건너뛴다. 다른 extmark 는 그대로 통과.
-      -- 코어가 고쳐지면 이 블록 전체 제거 가능.
-      if not vim.g.__inlay_extmark_guard then
-        vim.g.__inlay_extmark_guard = true
-        local api = vim.api
-        local orig = api.nvim_buf_set_extmark
-        local inlay_ns = api.nvim_create_namespace("nvim.lsp.inlayhint")
-        api.nvim_buf_set_extmark = function(buffer, ns, line, col, o)
-          if ns ~= inlay_ns then
-            return orig(buffer, ns, line, col, o)
-          end
-          local ok, res = pcall(orig, buffer, ns, line, col, o)
-          if ok then
-            return res
-          end
-          -- col 이 현재 줄 길이를 넘은 경우: 줄 끝으로 클램프해 재시도.
-          if line >= 0 and line < api.nvim_buf_line_count(buffer) then
-            local txt = api.nvim_buf_get_lines(buffer, line, line + 1, false)[1] or ""
-            local ok2, res2 = pcall(orig, buffer, ns, line, math.min(col, #txt), o)
-            if ok2 then
-              return res2
-            end
-          end
-          return 0 -- 마지막 수단: 해당 힌트만 스킵 (크래시 방지)
-        end
-      end
-
       -- blink.cmp가 지원하는 추가 기능을 모든 LSP 서버에 알림 (스니펫, 풍부한 completion 등)
       vim.lsp.config("*", {
         capabilities = require("blink.cmp").get_lsp_capabilities(),
@@ -97,47 +64,6 @@ return {
           vim.keymap.set("n", "<leader>f", function()
             require("conform").format({ async = true, lsp_format = "fallback" })
           end, opts)
-
-          -- inlay hints: 서버가 지원하면 기본 ON, <leader>uh 로 버퍼별 토글.
-          -- (jdtls 파라미터 이름 힌트는 java.lua 의 inlayHints 설정에서 켠다)
-          --
-          -- ⚠ Neovim 0.13-dev(nightly) inlay hint 구현에 편집 중 레이스가 있다:
-          --   힌트 col 은 "응답 도착 시점의 줄"로 계산되는데 그리기는 "redraw 시점의 줄"에
-          --   대해 일어나, 타이핑으로 줄이 짧아지면 col 이 줄 길이를 넘어가
-          --   "Invalid 'col': out of range" 로 데코레이션 프로바이더가 크래시한다.
-          --   회피: insert 모드 동안은 렌더를 끄고(버퍼가 흔들리는 구간) 빠져나오면
-          --   안정된 버퍼에 다시 켠다. 사용자의 on/off 의도는 b:inlay_hints_on 으로 보존.
-          --   (코어가 고쳐지면 이 가드는 제거 가능)
-          local client = vim.lsp.get_client_by_id(ev.data.client_id)
-          if client and client:supports_method("textDocument/inlayHint") then
-            local buf = ev.buf
-            vim.b[buf].inlay_hints_on = true
-            vim.lsp.inlay_hint.enable(true, { bufnr = buf })
-
-            vim.keymap.set("n", "<leader>uh", function()
-              local on = not vim.b[buf].inlay_hints_on
-              vim.b[buf].inlay_hints_on = on
-              vim.lsp.inlay_hint.enable(on, { bufnr = buf })
-            end, vim.tbl_extend("force", opts, { desc = "UI: inlay hints 토글" }))
-
-            local grp = vim.api.nvim_create_augroup("InlayHintInsertGuard_" .. buf, { clear = true })
-            vim.api.nvim_create_autocmd("InsertEnter", {
-              group = grp,
-              buffer = buf,
-              callback = function()
-                vim.lsp.inlay_hint.enable(false, { bufnr = buf })
-              end,
-            })
-            vim.api.nvim_create_autocmd("InsertLeave", {
-              group = grp,
-              buffer = buf,
-              callback = function()
-                if vim.b[buf].inlay_hints_on then
-                  vim.lsp.inlay_hint.enable(true, { bufnr = buf })
-                end
-              end,
-            })
-          end
         end,
       })
 
