@@ -45,6 +45,39 @@ return {
       "saghen/blink.cmp",
     },
     config = function()
+      -- ── inlay hint 크래시 안전망 (Neovim 0.13-dev nightly 버그 회피) ──
+      -- 코어 데코레이션 프로바이더가 redraw 시점에 줄 길이를 넘는 col 로
+      -- nvim_buf_set_extmark 를 호출해 "Invalid 'col': out of range" 로 죽는다.
+      -- (insert 가드로도 normal 모드 LSP 편집(format/organizeImports/rename 등)
+      --  직후의 비동기 렌더까지는 못 막아 재발 → 렌더 지점에서 직접 방어한다.)
+      -- inlay hint 네임스페이스의 extmark 만 가로채 col 을 클램프하고, 그래도
+      -- 실패하면 그 힌트 하나만 건너뛴다. 다른 extmark 는 그대로 통과.
+      -- 코어가 고쳐지면 이 블록 전체 제거 가능.
+      if not vim.g.__inlay_extmark_guard then
+        vim.g.__inlay_extmark_guard = true
+        local api = vim.api
+        local orig = api.nvim_buf_set_extmark
+        local inlay_ns = api.nvim_create_namespace("nvim.lsp.inlayhint")
+        api.nvim_buf_set_extmark = function(buffer, ns, line, col, o)
+          if ns ~= inlay_ns then
+            return orig(buffer, ns, line, col, o)
+          end
+          local ok, res = pcall(orig, buffer, ns, line, col, o)
+          if ok then
+            return res
+          end
+          -- col 이 현재 줄 길이를 넘은 경우: 줄 끝으로 클램프해 재시도.
+          if line >= 0 and line < api.nvim_buf_line_count(buffer) then
+            local txt = api.nvim_buf_get_lines(buffer, line, line + 1, false)[1] or ""
+            local ok2, res2 = pcall(orig, buffer, ns, line, math.min(col, #txt), o)
+            if ok2 then
+              return res2
+            end
+          end
+          return 0 -- 마지막 수단: 해당 힌트만 스킵 (크래시 방지)
+        end
+      end
+
       -- blink.cmp가 지원하는 추가 기능을 모든 LSP 서버에 알림 (스니펫, 풍부한 completion 등)
       vim.lsp.config("*", {
         capabilities = require("blink.cmp").get_lsp_capabilities(),
