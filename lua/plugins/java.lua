@@ -61,6 +61,36 @@ return {
       -- 1) nvim-java 부트스트랩 (jdtls lsp config 를 등록/패치).
       require("java").setup()
 
+      -- 1-b) nvim-java ↔ Neovim 0.13-dev(nightly) 호환 패치.
+      --   jdtls 는 auto-import 등에서 workspace/executeClientCommand 요청을 보내고,
+      --   nvim-java 의 핸들러 다수는 비동기로 커맨드를 실행한 뒤 곧장 nil 을 반환한다.
+      --   그런데 0.13-dev 의 rpc.lua 는 서버→클라이언트 "요청"에 반드시 result 나
+      --   error 응답을 보내도록 강제하므로(없으면
+      --   "either a result or an error must be sent to the server in response" 크래시),
+      --   nil 반환이 그대로 터진다. 자동완성으로 import 가 필요한 심볼을 가져올 때 재현.
+      --   → nvim-java 가 등록한 원 핸들러를 감싸 nil/nil 응답을 유효한 null(vim.NIL)
+      --     로 바꿔 항상 응답을 보장한다. 디스패치 로직 자체는 원본 그대로 보존.
+      --   (코어가 완화되거나 nvim-java 가 수정되면 이 블록 제거 가능)
+      do
+        local ecc = "workspace/executeClientCommand"
+        local orig = vim.lsp.handlers[ecc]
+        if type(orig) == "function" and not vim.g.__java_ecc_patched then
+          vim.g.__java_ecc_patched = true
+          vim.lsp.handlers[ecc] = function(err, params, ctx, ...)
+            local ok, result, rerr = pcall(orig, err, params, ctx, ...)
+            if not ok then
+              -- 원 핸들러가 throw → InternalError 로 응답해 크래시를 막는다.
+              return nil,
+                vim.lsp.rpc_response_error(vim.lsp.protocol.ErrorCodes.InternalError, tostring(result))
+            end
+            if result == nil and rerr == nil then
+              return vim.NIL -- 비동기 fire-and-forget 핸들러: 유효한 null 응답 보장
+            end
+            return result, rerr
+          end
+        end
+      end
+
       -- 2) jdtls 세부 설정 오버라이드. nvim-jdtls 시절 settings 를 그대로 이전.
       --    nvim-java 가 만든 jdtls 설정 위에 병합된다.
       local capabilities = {}
