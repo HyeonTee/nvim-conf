@@ -15,6 +15,20 @@ return {
     },
   },
 
+  -- LSP 서버가 아닌 CLI 도구 설치 보장.
+  -- conform.nvim 의 Python 포매터가 ruff 를 호출하므로 Mason 으로 함께 관리한다.
+  {
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    dependencies = { "williamboman/mason.nvim" },
+    opts = {
+      ensure_installed = {
+        "ruff",
+      },
+      auto_update = false,
+      run_on_start = true,
+    },
+  },
+
   -- Mason 으로 설치한 서버를 자동으로 vim.lsp.enable() 까지 처리.
   -- jdtls 는 제외한다 — nvim-java 가 require("java").setup() + vim.lsp.enable("jdtls")
   -- 로 직접 등록/활성화하므로, 여기서 자동 enable 하면 이중 setup 충돌이 난다.
