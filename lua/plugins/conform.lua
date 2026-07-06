@@ -18,7 +18,8 @@ return {
         css = { "prettier" },
         go = { "goimports", "gofmt" },
         rust = { "rustfmt" },
-        python = { "ruff_format" },
+        -- import 정리(isort 역할) 후 포맷. 둘 다 mason 의 ruff 바이너리 하나로 동작.
+        python = { "ruff_organize_imports", "ruff_format" },
         -- java: 명시적 포매터를 두지 않음. conform 의 lsp_format = "fallback" 이
         -- 동작해서 jdtls 의 자체 포맷 (Eclipse 표준, 4칸 들여쓰기) 으로 처리됨.
       },

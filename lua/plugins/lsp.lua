@@ -42,6 +42,7 @@ return {
         "gopls",
         "rust_analyzer",
         "basedpyright",
+        "ruff",
       },
       -- jdtls 는 nvim-java 가 소유. mason-lspconfig 의 자동 enable 에서 빼둔다.
       automatic_enable = {
@@ -98,6 +99,25 @@ return {
             telemetry = { enable = false },
           },
         },
+      })
+
+      -- python: basedpyright = 타입 검사/정의 이동/자동완성, ruff = 린트/import 정리.
+      -- 두 서버가 겹치는 기능은 한쪽을 꺼서 중복 진단/중복 code action 을 막는다.
+      vim.lsp.config("basedpyright", {
+        settings = {
+          basedpyright = {
+            -- import 정리는 ruff 가 담당
+            disableOrganizeImports = true,
+            -- 기본값 "recommended" 는 지나치게 엄격해서 일반 프로젝트에선 노이즈가 많음
+            analysis = { typeCheckingMode = "standard" },
+          },
+        },
+      })
+      vim.lsp.config("ruff", {
+        on_attach = function(client)
+          -- hover 는 basedpyright 것만 사용
+          client.server_capabilities.hoverProvider = false
+        end,
       })
     end,
   },
