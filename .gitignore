@@ -7,3 +7,11 @@ foo.*
 *.log
 data
 .DS_Store
+.tools/
+.test-env/
+lua/config/local.lua
+tests/fixtures/**/target/
+tests/fixtures/**/Cargo.lock
+tests/fixtures/**/.classpath
+tests/fixtures/**/.project
+tests/fixtures/**/.settings/

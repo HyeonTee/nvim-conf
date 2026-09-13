@@ -3,7 +3,23 @@ return {
     "stevearc/conform.nvim",
     event = { "BufWritePre" },
     cmd = { "ConformInfo" },
+    keys = {
+      {
+        "<leader>f",
+        function()
+          require("conform").format({ async = true, lsp_format = "fallback" })
+        end,
+        desc = "포맷",
+      },
+    },
     opts = {
+      formatters = {
+        rustfmt = {
+          cwd = function(_, ctx)
+            return vim.fs.root(ctx.dirname, { "Cargo.toml" })
+          end,
+        },
+      },
       formatters_by_ft = {
         lua = { "stylua" },
         javascript = { "prettier" },
@@ -16,7 +32,7 @@ return {
         markdown = { "prettier" },
         html = { "prettier" },
         css = { "prettier" },
-        go = { "goimports", "gofmt" },
+        go = { "goimports" },
         rust = { "rustfmt" },
         -- import 정리(isort 역할) 후 포맷. 둘 다 mason 의 ruff 바이너리 하나로 동작.
         python = { "ruff_organize_imports", "ruff_format" },
@@ -26,7 +42,7 @@ return {
       -- 저장 시 자동 포맷. conform에 정의된 포맷터가 없으면 LSP 포맷으로 폴백.
       format_on_save = {
         lsp_format = "fallback",
-        timeout_ms = 1000,
+        timeout_ms = 3000,
       },
     },
   },

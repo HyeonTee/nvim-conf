@@ -1,41 +1,5 @@
--- nvim-treesitter `main` branch
--- master 와 달리 setup({highlight=...}) 가 없다.
--- 파서는 install() 로 깔고, highlight/indent 는 FileType 에서 직접 켠다.
---
--- 요구사항 (둘 중 하나라도 없으면 하이라이트가 안 켜진다):
---   1. Neovim 0.12+ (nightly) — main 이 vim.list 등 0.12 API 사용. 0.11.x 는 install() 가 크래시.
---   2. `tree-sitter` CLI — main 은 파서를 소스에서 컴파일하므로 PATH 에 필요.
--- macOS: brew install neovim --HEAD && brew install tree-sitter-cli
--- 파서/쿼리는 ~/.local/share/nvim/site/ (기본 rtp) 에 설치된다.
-
-local parsers = {
-  "lua",
-  "vim",
-  "vimdoc",
-  "query",
-  "go",
-  "gomod",
-  "gosum",
-  "rust",
-  "python",
-  "typescript",
-  "javascript",
-  "tsx",
-  "json",
-  "yaml",
-  "toml",
-  "html",
-  "css",
-  "markdown",
-  "markdown_inline",
-  "bash",
-  "gitignore",
-  "sql",
-  "regex",
-  "java",
-  "properties",
-}
-
+-- nvim-treesitter main: parser versions follow the locked plugin commit.
+-- Installation is explicit in scripts/bootstrap.lua; highlighting is enabled per buffer.
 return {
   {
     "nvim-treesitter/nvim-treesitter",
@@ -43,7 +7,8 @@ return {
     lazy = false,
     build = ":TSUpdate",
     config = function()
-      require("nvim-treesitter").install(parsers)
+      -- 설치/업데이트는 bootstrap에서 동기적으로 수행한다.
+      -- 일반 편집 중 네트워크 작업이나 미완료 설치로 인한 경합을 피한다.
 
       -- 파서가 있는 버퍼면 highlight + indent 를 켠다.
       vim.api.nvim_create_autocmd("FileType", {

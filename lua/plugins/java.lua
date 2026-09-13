@@ -1,121 +1,37 @@
--- Java / Spring Boot 개발용 플러그인 묶음 (nvim-java 기반).
---
--- 이전에는 nvim-jdtls 로 ftplugin/java.lua 에서 직접 attach 하고
--- spring-boot.nvim / java-debug / java-test 번들을 손으로 주입했지만,
--- 머신 간 jar 버전 드리프트(특히 Spring) 관리가 번거로워 nvim-java 로 이전.
---
--- nvim-java 가 jdtls·lombok·java-test·java-debug-adapter·spring-boot.nvim 을
--- 모두 자체 번들/관리하므로 ftplugin 의 수동 와이어업이 사라진다.
---
--- 핵심 주의점:
---   1. require("java").setup() 이 vim.lsp.enable("jdtls") 보다 먼저 호출돼야 함.
---   2. jdtls 는 nvim-java 의 mason 레지스트리로 설치됨 (lsp.lua 의 mason registries 참고).
---   3. mason-lspconfig 의 자동 enable 에서 jdtls 를 제외해야 이중 setup 충돌이 없음
---      (lsp.lua 의 automatic_enable.exclude 참고).
---   4. jdtls 세부 설정은 vim.lsp.config("jdtls", ...) 로 오버라이드 (아래).
-
+-- nvim-java의 고정 번들/관리 JDK를 사용한다. 프로젝트 JDK는 config.java가 검증한다.
 return {
   {
     "nvim-java/nvim-java",
-    -- java 파일을 열 때 로드. nvim-java 가 jdtls 설정을 등록하고 enable 한다.
-    ft = "java",
+    ft = { "java" },
+    event = { "BufReadPost application*.yml", "BufReadPost application*.yaml", "BufReadPost application*.properties" },
     dependencies = {
-      -- nvim-java 는 mason 레지스트리로 jdtls 등을 설치하므로 mason 이 먼저 떠 있어야 함.
-      "williamboman/mason.nvim",
-      -- DAP 통합(java-debug/java-test) 은 nvim-dap 위에서 동작.
       "mfussenegger/nvim-dap",
+      "neovim/nvim-lspconfig",
+      "MunifTanjim/nui.nvim",
+      -- 첫 설치에서는 아직 nvim-java의 lazy.lua를 읽을 수 없으므로 명시한다.
+      "JavaHello/spring-boot.nvim",
     },
     config = function()
-      -- jdtls 부팅용 Java 21 탐지 (jdtls/Spring Boot LS 모두 Java 21+ 요구).
-      -- PATH 의 java 가 더 낮으면 exit 13 / UnsupportedClassVersionError.
-      -- 우선순위: JDTLS_JAVA_HOME → macOS java_home -v 21 → Linux /usr/lib/jvm → JAVA_HOME → PATH.
-      local function find_java21()
-        if vim.env.JDTLS_JAVA_HOME and vim.env.JDTLS_JAVA_HOME ~= "" then
-          return vim.env.JDTLS_JAVA_HOME .. "/bin/java"
+      require("config.java").setup()
+      -- 고정된 Spring 핸들러의 nil 결과/오류 반환을 LSP 응답 규약에 맞춘다.
+      vim.lsp.handlers["workspace/executeClientCommand"] = function(_, params, ctx)
+        local client = vim.lsp.get_client_by_id(ctx.client_id)
+        local handler = (client and client.commands and client.commands[params.command])
+          or vim.lsp.commands[params.command]
+        if not handler then
+          return nil, { code = -32601, message = "Unsupported command: " .. params.command }
         end
-        if vim.fn.has("mac") == 1 then
-          local handle = io.popen("/usr/libexec/java_home -v 21 2>/dev/null")
-          if handle then
-            local home = handle:read("*l")
-            handle:close()
-            if home and home ~= "" then
-              return home .. "/bin/java"
-            end
-          end
-        elseif vim.fn.has("unix") == 1 then
-          for _, pattern in ipairs({ "*temurin-21*", "*java-21-*", "*jdk-21*", "*-21-openjdk*" }) do
-            for _, dir in ipairs(vim.split(vim.fn.glob("/usr/lib/jvm/" .. pattern), "\n", { trimempty = true })) do
-              local bin = dir .. "/bin/java"
-              if vim.fn.executable(bin) == 1 then
-                return bin
-              end
-            end
-          end
+        local ok, result = pcall(handler, params.arguments, ctx)
+        if not ok then
+          return nil, { code = -32603, message = tostring(result) }
         end
-        if vim.env.JAVA_HOME and vim.env.JAVA_HOME ~= "" then
-          return vim.env.JAVA_HOME .. "/bin/java"
-        end
-        return "java"
+        return result == nil and vim.NIL or result
       end
-
-      -- 1) nvim-java 부트스트랩 (jdtls lsp config 를 등록/패치).
-      require("java").setup()
-
-      -- 1-b) nvim-java ↔ Neovim 0.13-dev(nightly) 호환 패치.
-      --   jdtls 는 auto-import 등에서 workspace/executeClientCommand 요청을 보내고,
-      --   nvim-java 의 핸들러 다수는 비동기로 커맨드를 실행한 뒤 곧장 nil 을 반환한다.
-      --   그런데 0.13-dev 의 rpc.lua 는 서버→클라이언트 "요청"에 반드시 result 나
-      --   error 응답을 보내도록 강제하므로(없으면
-      --   "either a result or an error must be sent to the server in response" 크래시),
-      --   nil 반환이 그대로 터진다. 자동완성으로 import 가 필요한 심볼을 가져올 때 재현.
-      --   → nvim-java 가 등록한 원 핸들러를 감싸 nil/nil 응답을 유효한 null(vim.NIL)
-      --     로 바꿔 항상 응답을 보장한다. 디스패치 로직 자체는 원본 그대로 보존.
-      --   (코어가 완화되거나 nvim-java 가 수정되면 이 블록 제거 가능)
-      do
-        local ecc = "workspace/executeClientCommand"
-        local orig = vim.lsp.handlers[ecc]
-        if type(orig) == "function" and not vim.g.__java_ecc_patched then
-          vim.g.__java_ecc_patched = true
-          vim.lsp.handlers[ecc] = function(err, params, ctx, ...)
-            local ok, result, rerr = pcall(orig, err, params, ctx, ...)
-            if not ok then
-              -- 원 핸들러가 throw → InternalError 로 응답해 크래시를 막는다.
-              return nil,
-                vim.lsp.rpc_response_error(vim.lsp.protocol.ErrorCodes.InternalError, tostring(result))
-            end
-            if result == nil and rerr == nil then
-              return vim.NIL -- 비동기 fire-and-forget 핸들러: 유효한 null 응답 보장
-            end
-            return result, rerr
-          end
-        end
-      end
-
-      -- 2) jdtls 세부 설정 오버라이드. nvim-jdtls 시절 settings 를 그대로 이전.
-      --    nvim-java 가 만든 jdtls 설정 위에 병합된다.
-      local capabilities = {}
-      local ok_blink, blink = pcall(require, "blink.cmp")
-      if ok_blink then
-        capabilities = blink.get_lsp_capabilities()
-      end
-
-      -- jdtls 부팅 JVM 의 JAVA_HOME (bin/java 에서 두 단계 상위)
-      local java21_home = vim.fn.fnamemodify(find_java21(), ":h:h")
-
       vim.lsp.config("jdtls", {
-        capabilities = capabilities,
+        capabilities = require("blink.cmp").get_lsp_capabilities(),
         settings = {
           java = {
-            configuration = {
-              -- 프로젝트 빌드에 쓸 런타임. Spring Boot 프로젝트는 Java 21 기준.
-              runtimes = {
-                {
-                  name = "JavaSE-21",
-                  path = java21_home,
-                },
-              },
-              updateBuildConfiguration = "automatic",
-            },
+            configuration = { updateBuildConfiguration = "automatic" },
             eclipse = { downloadSources = true },
             maven = { downloadSources = true },
             implementationsCodeLens = { enabled = true },
@@ -132,26 +48,14 @@ return {
               },
               importOrder = { "java", "javax", "com", "org" },
             },
-            sources = {
-              organizeImports = { starThreshold = 9999, staticStarThreshold = 9999 },
-            },
-            -- 포맷 들여쓰기 4칸 스페이스 강제 (LSP formatOptions 미전달 시 안전망).
-            format = {
-              enabled = true,
-              tabSize = 4,
-              insertSpaces = true,
-            },
+            sources = { organizeImports = { starThreshold = 9999, staticStarThreshold = 9999 } },
+            format = { enabled = true, tabSize = 4, insertSpaces = true },
           },
         },
       })
-
-      -- 3) jdtls 활성화 (java 버퍼에서 자동 attach).
       vim.lsp.enable("jdtls")
     end,
   },
-
-  -- DAP 코어 + UI. nvim-java 가 java-debug-adapter / java-test 를 nvim-dap 에
-  -- 자동 연결하므로, 여기서는 UI/가상 텍스트와 키맵만 둔다.
   {
     "mfussenegger/nvim-dap",
     dependencies = {
@@ -159,20 +63,68 @@ return {
       { "theHamsta/nvim-dap-virtual-text", opts = {} },
     },
     keys = {
-      { "<leader>db", function() require("dap").toggle_breakpoint() end, desc = "DAP: 브레이크포인트 토글" },
-      { "<leader>dc", function() require("dap").continue() end, desc = "DAP: 계속" },
-      { "<leader>di", function() require("dap").step_into() end, desc = "DAP: step into" },
-      { "<leader>do", function() require("dap").step_over() end, desc = "DAP: step over" },
-      { "<leader>dO", function() require("dap").step_out() end, desc = "DAP: step out" },
-      { "<leader>dt", function() require("dap").terminate() end, desc = "DAP: 종료" },
-      { "<leader>du", function() require("dapui").toggle() end, desc = "DAP UI 토글" },
+      {
+        "<leader>db",
+        function()
+          require("dap").toggle_breakpoint()
+        end,
+        desc = "DAP: 브레이크포인트 토글",
+      },
+      {
+        "<leader>dc",
+        function()
+          require("dap").continue()
+        end,
+        desc = "DAP: 계속",
+      },
+      {
+        "<leader>di",
+        function()
+          require("dap").step_into()
+        end,
+        desc = "DAP: step into",
+      },
+      {
+        "<leader>do",
+        function()
+          require("dap").step_over()
+        end,
+        desc = "DAP: step over",
+      },
+      {
+        "<leader>dO",
+        function()
+          require("dap").step_out()
+        end,
+        desc = "DAP: step out",
+      },
+      {
+        "<leader>dt",
+        function()
+          require("dap").terminate()
+        end,
+        desc = "DAP: 종료",
+      },
+      {
+        "<leader>du",
+        function()
+          require("dapui").toggle()
+        end,
+        desc = "DAP UI 토글",
+      },
     },
     config = function()
       local dap, dapui = require("dap"), require("dapui")
       dapui.setup()
-      dap.listeners.after.event_initialized["dapui_config"] = function() dapui.open() end
-      dap.listeners.before.event_terminated["dapui_config"] = function() dapui.close() end
-      dap.listeners.before.event_exited["dapui_config"] = function() dapui.close() end
+      dap.listeners.after.event_initialized["dapui_config"] = function()
+        dapui.open()
+      end
+      dap.listeners.before.event_terminated["dapui_config"] = function()
+        dapui.close()
+      end
+      dap.listeners.before.event_exited["dapui_config"] = function()
+        dapui.close()
+      end
     end,
   },
 }

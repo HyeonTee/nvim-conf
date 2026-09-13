@@ -1,109 +1,46 @@
-# 트러블슈팅
+# 문제 해결
 
-설정 사용 중 겪은 문제와 해결법 모음. 새 머신 세팅 시 참고.
+먼저 `bash scripts/doctor.sh`를 실행하고 FAIL 항목부터 해결한다.
 
-## jdtls / spring-boot 가 안 뜸 (exit code 13)
+## 시스템 nvim과 동작이 다름
 
-**증상**
+`bash scripts/nvim.sh --version`과 `nvim --version`을 비교한다.
+지원 기준은 `.nvim-version`의 고정 바이너리다. Homebrew nightly 업데이트와 함께 IDE 버전을 바꾸지 않는다.
 
-- java 파일을 열어도 LSP(jdtls)가 attach 되지 않음
-- spring-boot 기능(bean 점프, `application.yml` 자동완성)도 동작 안 함
-- jdtls 로그/`:checkhealth` 에 `exit code 13` 비슷한 메시지
+## Java 도구 누락/초기화 실패
 
-**원인**
+`bash scripts/bootstrap.sh` 후 Neovim을 재시작한다. Java 도구는 Mason이 아니라
+`stdpath('data')/nvim-java/packages` 아래에서 nvim-java가 관리한다.
+예전 `:MasonInstall vscode-spring-boot-tools@1.63.0`은 현재 Java 번들을 고치지 않는다.
+`doctor`가 설치 디렉터리는 찾는데 초기화가 실패하면 다운로드 중단으로 불완전한 디렉터리인지 확인한다.
+해당 **단일 패키지/버전 디렉터리만 다른 이름으로 이동해 보관**한 뒤 bootstrap을 다시 실행한다.
+전체 Mason/nvim 데이터를 삭제하지 않는다.
 
-jdtls 는 **Java 21+ 로 부팅**되어야 한다 (프로젝트 자체 JDK 와는 별개). `ftplugin/java.lua`
-는 jdtls 부팅용 java 를 아래 우선순위로 찾는다:
+## 프로젝트 JDK가 없거나 이름과 버전이 다름
 
-1. `JDTLS_JAVA_HOME` 환경변수
-2. macOS: `/usr/libexec/java_home -v 21` 결과
-3. `JAVA_HOME`
-4. PATH 의 `java` (최후 폴백)
+`JAVA21_HOME/bin/java -version` 등을 확인한다. JavaSE-21에는 실제 JDK 21만 등록한다.
+macOS `java_home -v 21`이 다른 버전을 반환할 수 있으므로 그 출력만 신뢰하지 않는다.
+Homebrew의 JDK는 자동으로 시스템에 등록되지 않아도 실제 JDK 홈을 `JAVA21_HOME`에 지정하면 된다.
+서버용 고정 JDK 25.0.3은 프로젝트 JDK를 대체하지 않는다.
 
-Homebrew 로 `openjdk@21` 을 설치하면 `/opt/homebrew/opt/openjdk@21` 에는 깔리지만
-**Apple 의 `/Library/Java/JavaVirtualMachines/` 에는 자동 등록되지 않는다.** 그러면:
+## TypeScript 진단이 중복됨
 
-- `/usr/libexec/java_home -v 21` 가 21 을 못 찾고 실패 (등록된 건 17 같은 구버전뿐)
-- 폴백이 PATH 의 `java`(예: 17) 를 잡음
-- jdtls 가 Java 버전 부족으로 **exit code 13** 으로 종료
+`:lua =vim.lsp.get_clients({bufnr=0})`로 확인한다. 기본 구성에서는 ts_ls 하나만 있어야 한다.
+과거 설치한 vtsls가 Mason에 남아 있어도 실행되지 않는다. local.lua나 프로젝트 설정의 별도 enable을 점검한다.
 
-`/usr/libexec/java_home` 이 말하는 버전과 실제 Homebrew 설치 버전이 다른 게 핵심.
+## Go import 정리가 안 됨
 
-**확인**
+`:ConformInfo`에서 goimports를 확인한다. bootstrap이 버전까지 맞춰 설치한다.
+gofmt만으로는 import 추가/삭제를 처리하지 않는다.
 
-```bash
-/usr/libexec/java_home -v 21   # 21 경로가 나와야 정상. 실패하면 이 문제
-ls /Library/Java/JavaVirtualMachines/   # 21 이 등록돼 있는지
-ls -d /opt/homebrew/opt/openjdk@21       # Homebrew 21 설치 여부
-```
+## Rust 서버 또는 표준 라이브러리 분석 실패
 
-**해결 (둘 중 하나)**
+프로젝트 디렉터리에서 `rustup show active-toolchain`, `rustup which rust-analyzer`를 확인한다.
+`rustup component add rust-analyzer rust-src rustfmt clippy`를 실행한다.
+Mason에 남은 rust-analyzer는 사용하지 않는다. project override가 있으면 다른 프로젝트의 검사 결과와 달라질 수 있다.
 
-방법 A — Homebrew JDK 를 시스템에 등록 (권장, sudo 필요). java_home 에 잡히면
-jdtls 뿐 아니라 gradle/maven/터미널 전부 21 을 쓰게 된다:
+## 설치 네트워크 오류
 
-```bash
-sudo ln -sfn /opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk \
-  /Library/Java/JavaVirtualMachines/openjdk-21.jdk
-/usr/libexec/java_home -v 21   # 이제 경로가 나와야 함
-```
-
-방법 B — jdtls 전용 env 변수 (sudo 없이). 시스템은 그대로 두고 jdtls 만 21 로 띄움:
-
-```bash
-# ~/.zshrc 에 추가
-export JDTLS_JAVA_HOME=/opt/homebrew/opt/openjdk@21
-```
-
-적용 후 nvim 에서 `:e` 로 java 파일을 다시 열면 jdtls 가 새 java 로 재시작된다.
-
-## 회사에선 되는데 git pull 받은 머신에서 spring-boot 만 깨짐
-
-**증상**
-
-- jdtls(LSP)는 정상 attach 되고 일반 자바 기능은 됨
-- 그런데 **Spring 기능만** 안 됨 (bean 점프, `@RequestMapping` 심볼 검색,
-  `application.yml`/`.properties` 자동완성)
-- 머신마다 됐다 안 됐다 함 — 특히 새로 git pull 받은 머신에서 재현
-
-**원인 — mason 버전 드리프트**
-
-`lazy-lock.json` 은 **플러그인 git 커밋만** 고정한다. **Mason 패키지 버전은 고정 대상이
-아니다.** spring-boot.nvim 은 mason 의 `vscode-spring-boot-tools` 안에 있는 jar 들
-(`jdt-ls-extension.jar`, `sts-gradle-tooling.jar`, `io.projectreactor.reactor-core.jar`
-등)을 **하드코딩된 이름**으로 jdtls bundle 에 주입한다.
-
-핀이 없으면 새 머신의 첫 설치에서 mason 이 **최신** sts4 를 받는데, 그 버전의 jar
-레이아웃/이름이 현재 고정된 spring-boot.nvim 커밋이 기대하는 것과 어긋나면 bundle 주입이
-실패해 Spring 기능만 죽는다. (jdtls 자체는 멀쩡하므로 일반 자바는 됨 → 진단이 헷갈림)
-
-**해결 — 버전 핀 (적용 완료)**
-
-`lua/plugins/java.lua` 의 `mason-tool-installer` 에 sts4 버전을 고정해 둠:
-
-```lua
-{ "vscode-spring-boot-tools", version = "1.63.0" },
-```
-
-이러면 어느 머신이든 spring-boot.nvim 커밋과 짝이 맞는 동일 sts4 를 받는다.
-
-**이미 다른 버전이 깔려 깨진 머신에서**
-
-`auto_update = false` 라 mason-tool-installer 가 자동 다운그레이드하지 않는다. 한 번만
-수동으로 맞춰준다:
-
-```vim
-:MasonInstall vscode-spring-boot-tools@1.63.0
-```
-
-설치 후 nvim 재시작(또는 java 파일에서 `:e`). 확인:
-
-```bash
-cat ~/.local/share/nvim/mason/packages/vscode-spring-boot-tools/mason-receipt.json \
-  | grep -o 'vscode-spring-boot@[0-9.]*'   # vscode-spring-boot@1.63.0 이어야 함
-```
-
-**업그레이드할 때**
-
-sts4 를 올리려면 spring-boot.nvim 플러그인 커밋과 이 버전 핀을 **함께** 올려야 한다.
-한쪽만 올리면 다시 드리프트로 깨진다.
+bootstrap이 표시한 실패 패키지와 Neovim의 `:MasonLog`/`:messages`를 확인한다.
+GitHub, npm/PyPI, Go 모듈 프록시, Eclipse, Open VSX, Oracle 접근이 필요하다.
+폐쇄망에서는 승인된 미러/프록시 구성이 별도로 필요하다. 잠금을 최신 버전으로 풀어 우회하지 않는다.

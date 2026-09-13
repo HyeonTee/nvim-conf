@@ -1,0 +1,4 @@
+-- 이 파일을 local.lua로 복사하고 머신별 JDK 경로만 지정한다 (Git 제외).
+-- 실제 java -version이 일치하지 않으면 초기화/doctor가 실패한다.
+-- vim.env.JAVA21_HOME = "/your/jdk-21/home"
+-- vim.env.JAVA17_HOME = "/your/jdk-17/home"

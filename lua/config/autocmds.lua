@@ -44,6 +44,9 @@ vim.api.nvim_create_autocmd("TermOpen", {
 vim.api.nvim_create_autocmd({ "FocusLost", "BufLeave" }, {
   pattern = "*",
   callback = function()
+    if vim.g.ide_test then
+      return
+    end
     if vim.bo.modifiable and vim.bo.modified and vim.bo.buftype == "" and vim.fn.expand("%") ~= "" then
       vim.cmd("silent! write")
     end

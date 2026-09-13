@@ -14,7 +14,10 @@ return {
         default = { "lsp", "path", "snippets", "buffer" },
       },
       signature = { enabled = true },
-      fuzzy = { implementation = "prefer_rust_with_warning" },
+      fuzzy = {
+        implementation = "prefer_rust_with_warning",
+        prebuilt_binaries = { download = vim.g.ide_bootstrap == true },
+      },
     },
   },
 }

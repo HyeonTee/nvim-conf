@@ -1,31 +1,25 @@
+local toolchain = require("config.toolchain")
+
 return {
-  -- LSP/포매터/린터 바이너리 설치 관리자
-  -- nvim-java 가 jdtls/lombok/java-test/java-debug/spring-boot 를 자체 mason
-  -- 레지스트리(github:nvim-java/mason-registry)로 설치하므로 그 레지스트리를
-  -- 기본 레지스트리보다 먼저 등록한다. 순서: nvim-java 우선 → mason-org 폴백.
+  -- Java는 nvim-java, Rust는 rustup이 관리한다.
   {
     "williamboman/mason.nvim",
     cmd = "Mason",
-    build = ":MasonUpdate",
     opts = {
       registries = {
-        "github:nvim-java/mason-registry",
         "github:mason-org/mason-registry",
       },
     },
   },
 
-  -- LSP 서버가 아닌 CLI 도구 설치 보장.
-  -- conform.nvim 의 Python 포매터가 ruff 를 호출하므로 Mason 으로 함께 관리한다.
+  -- 설치는 scripts/bootstrap.sh에서 버전을 비교하고 명시적으로 수행한다.
   {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     dependencies = { "williamboman/mason.nvim" },
     opts = {
-      ensure_installed = {
-        "ruff",
-      },
+      ensure_installed = {},
       auto_update = false,
-      run_on_start = true,
+      run_on_start = false,
     },
   },
 
@@ -36,18 +30,9 @@ return {
     "williamboman/mason-lspconfig.nvim",
     dependencies = { "williamboman/mason.nvim" },
     opts = {
-      ensure_installed = {
-        "lua_ls",
-        "ts_ls",
-        "gopls",
-        "rust_analyzer",
-        "basedpyright",
-        "ruff",
-      },
-      -- jdtls 는 nvim-java 가 소유. mason-lspconfig 의 자동 enable 에서 빼둔다.
-      automatic_enable = {
-        exclude = { "jdtls" },
-      },
+      ensure_installed = {},
+      -- 기존 머신에 vtsls 등이 설치돼 있어도 의도한 서버만 활성화한다.
+      automatic_enable = toolchain.servers,
     },
   },
 
@@ -119,6 +104,15 @@ return {
           client.server_capabilities.hoverProvider = false
         end,
       })
+      local rustup = vim.fn.exepath("rustup")
+      if rustup ~= "" then
+        -- Mason PATH보다 우선하는 rustup proxy. 프로젝트 toolchain override를 따른다.
+        vim.lsp.config("rust_analyzer", {
+          cmd = { vim.fs.joinpath(vim.fs.dirname(rustup), "rust-analyzer") },
+          settings = { ["rust-analyzer"] = { check = { command = "clippy" } } },
+        })
+        vim.lsp.enable("rust_analyzer")
+      end
     end,
   },
 }
