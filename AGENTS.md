@@ -2,6 +2,7 @@
 
 목표: macOS/Linux에서 Java/Spring, Go, Rust, TypeScript IDE를 재현한다.
 README.md와 docs/toolchain.md를 먼저 읽고 설치 담당/버전 원본을 유지한다.
+증상을 진단할 때는 TROUBLESHOOTING.md의 알려진 실패 유형과 진단 명령을 먼저 확인한다.
 
 - 사용자 변경을 보존한다. 특히 lazy-lock.json의 기존 변경을 임의로 되돌리지 않는다.
 - 머신별 절대 경로는 공통 설정에 넣지 않는다. 환경변수 또는 Git 제외 local.lua를 사용한다.
