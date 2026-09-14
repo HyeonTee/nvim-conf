@@ -11,7 +11,7 @@ function M.check()
   local function add(ok, message)
     table.insert(results, { ok = ok, message = message })
   end
-  for _, bin in ipairs({ "git", "curl", "tar", "unzip", "make", "cc", "npm", "rustup", "rg", "fd" }) do
+  for _, bin in ipairs({ "git", "curl", "tar", "unzip", "make", "cc", "npm", "rustup", "cargo", "rg", "fd" }) do
     add(vim.fn.executable(bin) == 1, bin .. " on PATH")
   end
   local node = command({ "node", "--version" })

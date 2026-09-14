@@ -2,6 +2,7 @@ return {
   {
     "saghen/blink.cmp",
     version = "1.*",
+    build = "cargo build --release",
     dependencies = { "rafamadriz/friendly-snippets" },
     opts = {
       keymap = { preset = "enter" },
@@ -16,7 +17,7 @@ return {
       signature = { enabled = true },
       fuzzy = {
         implementation = "prefer_rust_with_warning",
-        prebuilt_binaries = { download = vim.g.ide_bootstrap == true },
+        prebuilt_binaries = { download = false },
       },
     },
   },

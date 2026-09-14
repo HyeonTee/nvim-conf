@@ -13,7 +13,7 @@ Neovim은 `.nvim-version`, 플러그인은 `lazy-lock.json`, 외부 도구는 `l
 | git, curl, tar, unzip, C 컴파일러, make | 플러그인과 Treesitter 빌드 |
 | Node 20 이상 + npm | TypeScript/ESLint/Prettier 실행 |
 | Go 1.25 이상 | gopls/goimports 설치·프로젝트 분석. 필요한 빌드 툴체인을 Go가 추가 다운로드할 수 있음 |
-| rustup + Rust 툴체인 | 프로젝트와 같은 rust-analyzer/rustfmt/Clippy 사용 |
+| rustup + Rust 툴체인 | 프로젝트와 같은 rust-analyzer/rustfmt/Clippy 사용. cargo로 blink.cmp fuzzy 라이브러리 빌드 |
 | tree-sitter CLI **0.26.11** | 파서 빌드. npm 패키지는 사용하지 않음 |
 | ripgrep, fd | 검색 및 Python 가상환경 검색 |
 | Python 3 + venv/pip | 유지 중인 Python LSP 설치 |

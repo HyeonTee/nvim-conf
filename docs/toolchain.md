@@ -14,6 +14,7 @@ Neovim 버전을 바꿀 때 네 플랫폼의 digest도 함께 갱신한다.
 | bundled TypeScript | bootstrap npm | `toolchain.typescript` |
 | Java 번들 | nvim-java | `toolchain.java` |
 | Java 서버 JDK | nvim-java + config.java의 고정 archive spec | 25.0.3, latest URL 사용 금지 |
+| blink.cmp fuzzy 네이티브 라이브러리 | bootstrap의 `cargo build --release` | `lazy-lock.json`의 blink.cmp 커밋 |
 | Rust 분석/포맷/Clippy | rustup | 프로젝트 활성 toolchain |
 | 프로젝트 컴파일러/포맷 설정 | 프로젝트 | 각 프로젝트의 toolchain/lock/config |
 

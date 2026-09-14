@@ -34,6 +34,28 @@ local function main()
   end, debug.traceback)
   vim.fn.writefile(before, lock_path)
   assert(ok, err)
+  -- blink.cmp fuzzy는 로컬 빌드로 고정한다. 다운로드본이 남긴 태그 version 파일이나
+  -- 옛 커밋의 빌드 표시가 남아 있으면 실행 시 Lua 구현으로 폴백하므로 정리하고 다시 빌드한다.
+  local blink_dir = vim.fn.stdpath("data") .. "/lazy/blink.cmp"
+  local release = blink_dir .. "/target/release"
+  local blink_lib = release .. "/libblink_cmp_fuzzy." .. (vim.fn.has("mac") == 1 and "dylib" or "so")
+  local blink_head = vim.system({ "git", "-C", blink_dir, "rev-parse", "HEAD" }, { text = true }):wait()
+  assert(blink_head.code == 0, "Failed to read blink.cmp HEAD")
+  blink_head = vim.trim(blink_head.stdout)
+  local marker_file = io.open(release .. "/version")
+  local marker = marker_file and vim.trim(marker_file:read("*a")) or nil
+  if marker_file then
+    marker_file:close()
+  end
+  if vim.uv.fs_stat(blink_lib) == nil or not (marker == nil or marker == blink_head) then
+    if marker ~= nil then
+      assert(vim.fn.delete(release .. "/version") == 0, "Failed to remove stale blink.cmp version marker")
+    end
+    print("Building blink.cmp fuzzy library")
+    local build = vim.system({ "cargo", "build", "--release" }, { cwd = blink_dir, text = true }):wait(900000)
+    assert(build.code == 0, "blink.cmp fuzzy build failed: " .. (build.stderr or ""))
+  end
+  assert(vim.uv.fs_stat(blink_lib), "blink.cmp fuzzy library missing after build")
   require("mason").setup()
   local registry = require("mason-registry")
   local refreshed, success = false, false

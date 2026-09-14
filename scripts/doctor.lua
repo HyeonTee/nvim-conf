@@ -47,9 +47,20 @@ local function main()
   local ffi = require("ffi")
   check(pcall(ffi.load, data .. "/lazy/telescope-fzf-native.nvim/build/libfzf.so"), "Telescope native library")
   local extension = vim.fn.has("mac") == 1 and "dylib" or "so"
+  -- blink은 version 파일로 fuzzy 구현을 고른다. 로컬 빌드는 플러그인 HEAD sha를 남기고,
+  -- 다운로드본은 태그를 남긴다. download 비활성 상태에서 태그나 옛 sha가 남아 있으면
+  -- 라이브러리가 로드되더라도 런타임에 Lua로 폴백하므로 함께 검사한다.
+  local blink_dir = data .. "/lazy/blink.cmp"
+  local blink_head = vim.system({ "git", "-C", blink_dir, "rev-parse", "HEAD" }, { text = true }):wait()
+  local blink_version = io.open(blink_dir .. "/target/release/version")
+  local blink_marker = blink_version and vim.trim(blink_version:read("*a")) or nil
+  if blink_version then
+    blink_version:close()
+  end
   check(
-    pcall(ffi.load, data .. "/lazy/blink.cmp/target/release/libblink_cmp_fuzzy." .. extension),
-    "Blink native library"
+    pcall(ffi.load, blink_dir .. "/target/release/libblink_cmp_fuzzy." .. extension)
+      and (blink_marker == nil or (blink_head.code == 0 and blink_marker == vim.trim(blink_head.stdout))),
+    "Blink native library (rust fuzzy active)"
   )
   for name, version in pairs(policy.mason) do
     local ok, pkg = pcall(registry.get_package, name)
