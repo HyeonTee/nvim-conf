@@ -89,6 +89,16 @@ local function main()
       for _, query in ipairs({ "highlights", "injections", "indents", "textobjects" }) do
         vim.treesitter.query.get(lang, query)
       end
+      -- 상속 대상 쿼리가 없으면 Neovim은 조용히 건너뛰어 하이라이트가 비게 된다.
+      for _, file in ipairs(vim.api.nvim_get_runtime_file("queries/" .. lang .. "/*.scm", true)) do
+        local first = vim.fn.readfile(file, "", 1)[1] or ""
+        for base in (first:match("^;+%s*inherits%s*:?%s*(.*)$") or ""):gmatch("[^,%s]+") do
+          if not base:match("^%(") then -- (lang)은 선택적 상속
+            local found = vim.api.nvim_get_runtime_file("queries/" .. base .. "/*.scm", false)
+            assert(#found > 0, "query inherits missing queries " .. base)
+          end
+        end
+      end
     end)
     check(ok, "parser/queries " .. lang .. (ok and "" or ": " .. tostring(err)))
   end

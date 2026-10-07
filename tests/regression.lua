@@ -25,11 +25,19 @@ local function main()
   local policy = require("config.toolchain")
   assert(vim.list_contains(policy.servers, "ts_ls") and not vim.list_contains(policy.servers, "vtsls"))
   assert(not vim.list_contains(policy.servers, "jdtls") and not vim.list_contains(policy.servers, "rust_analyzer"))
+  require("config.filetypes")
+  local chart = vim.fn.tempname()
+  vim.fn.mkdir(chart .. "/templates", "p")
+  vim.fn.writefile({}, chart .. "/Chart.yaml")
+  assert(vim.filetype.match({ filename = chart .. "/templates/deployment.yaml" }) == "helm")
+  assert(vim.filetype.match({ filename = chart .. "/values.yaml" }) == "yaml")
+  assert(vim.filetype.match({ filename = vim.fn.tempname() .. "/templates/x.yaml" }) == "yaml")
+  vim.fn.delete(chart, "rf")
   local files = vim.fn.glob(root .. "/lua/**/*.lua", false, true)
   for _, f in ipairs(files) do
     assert(loadfile(f))
   end
-  print("PASS regression: JDK validation, server ownership, Lua syntax")
+  print("PASS regression: JDK validation, server ownership, Helm filetype, Lua syntax")
 end
 local ok, err = xpcall(main, debug.traceback)
 if not ok then

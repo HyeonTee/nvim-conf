@@ -39,6 +39,8 @@ return {
     "tsx",
     "json",
     "yaml",
+    "gotmpl",
+    "helm",
     "toml",
     "html",
     "css",
